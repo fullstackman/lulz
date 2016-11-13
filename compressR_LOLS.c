@@ -20,6 +20,10 @@ int main(int argc, char *argv[])
 	//need to check if we have permission to access file
 	FILE * fp;
 	fp = fopen(argv[1], "r");
+	if(fp == NULL){
+		printf("That file was not found!\n");
+		return 404;
+	}
 	
 	int fileNameLength = strlen(argv[1])-4;
 	char fileName[fileNameLength+1];
