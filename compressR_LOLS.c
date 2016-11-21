@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	
 	/* We can use this to delete the previous output files if the user calls this program on the same file multiple times!*/
 	char* deleteCommand = malloc(43 + ( sizeof(char) * fileNameLength ) );
-	sprintf(deleteCommand, "find -type f -name '%s_txt_LOLS*.txt' -delete", fileName);
+	sprintf(deleteCommand, "find -type f -name '%s_txt_LOLS*' -delete", fileName);
 	system(deleteCommand);
 	
 	//here we should store the indeces to start and how much to do for each process
@@ -86,11 +86,11 @@ int main(int argc, char *argv[])
 			
 			
 			if(i == 0){		//if its the first part, increment by offset
-				
 				char command[510];
+				if(numParts == 1)
+					i = -1;
 				snprintf(command, 510, "./compressR_worker_LOLS %s %d %d %d", argv[1], (sizePart + offset), i, 0);
 				execl("/bin/sh", "/bin/sh", "-c", command, NULL);
-				//continue; 	<---not necessary
 			}
 			
 			char command[510];

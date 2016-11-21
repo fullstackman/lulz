@@ -68,11 +68,13 @@ int main(int argc, char *argv[]){
 	//printf("\tWorker Output - PART %d: %s\n", orderNum, output);
 	
 	FILE* sampleOutput;
-	//int fileNameLength = strlen(argv[1])-4;
-	//char outputFile[fileNameLength+11];
+	//determine the number of digits of orderNum!
 	char outputFile[510];
-	fileName[sizeof(fileName)- 4] = '_';
-	snprintf(outputFile, 510, "%s_LOLS%d.txt", fileName, orderNum);
+	fileName[strlen(fileName)- 4] = '_';
+	if(orderNum == -1)
+		snprintf(outputFile, 510, "%s_LOLS", fileName);
+	else
+		snprintf(outputFile, 510, "%s_LOLS%d", fileName, orderNum);
 	//strcpy(outputFile, fileName);
 	//strcat(outputFile, "OUTPUT.txt");
 	//outputFile[fileNameLength+10] = '\0';
