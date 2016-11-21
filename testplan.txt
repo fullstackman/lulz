@@ -1,1 +1,11 @@
 //Needs more code
+FILE* sampleOutput;
+	char outputFile[fileNameLength+11];
+	strcpy(outputFile, fileName);
+	strcat(outputFile, "OUTPUT.txt");
+	outputFile[fileNameLength+10] = '\0';
+	sampleOutput = fopen(outputFile, "w+");
+	char outputText[57];
+	sprintf(outputText, "This is the number of parallel processes you requested: %d", parts);
+	fputs(outputText,sampleOutput);
+	fclose(fp);
