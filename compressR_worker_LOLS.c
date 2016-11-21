@@ -65,14 +65,14 @@ int main(int argc, char *argv[]){
 	}
 	else
 		strcpy(output, input);
-	printf("\tWorker Output - PART %d: %s\n", orderNum, output);
+	//printf("\tWorker Output - PART %d: %s\n", orderNum, output);
 	
 	FILE* sampleOutput;
 	//int fileNameLength = strlen(argv[1])-4;
 	//char outputFile[fileNameLength+11];
 	char outputFile[510];
 	fileName[sizeof(fileName)- 4] = '_';
-	snprintf(outputFile, 510, "%s_LOLS%d", fileName, orderNum);
+	snprintf(outputFile, 510, "%s_LOLS%d.txt", fileName, orderNum);
 	//strcpy(outputFile, fileName);
 	//strcat(outputFile, "OUTPUT.txt");
 	//outputFile[fileNameLength+10] = '\0';
@@ -84,6 +84,6 @@ int main(int argc, char *argv[]){
 	//success status is returned
 	exit(0);
 	//when would this process fail though?
-	printf("\tWorker %d failed.\n", orderNum);
+	printf("\t\tWorker %d failed.\n", orderNum);
 	return 0;
 }

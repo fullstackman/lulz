@@ -11,12 +11,18 @@
 int main(int argc, char *argv[])
 {
 	if(argc > 3){
-		printf("Don't give me so many parameters!\n");
+		printf("\tERROR: Too many parameters\n");
 		return 99;
 	}
 	
 	if(argc < 3){
-		printf("I'm gonna need more information...\n");
+		printf("\tERROR: Not enough parameters\n");
+		return -1;
+	}
+	int numParts = atoi(argv[2]);
+	if(!numParts){
+		printf("\tERROR: incorrect number entered!\n");
+		return -2;
 	}
 	
 	//need to check if we have permission to access file
@@ -24,7 +30,7 @@ int main(int argc, char *argv[])
 	fp = fopen(argv[1], "r");
 	
 	if(fp == NULL){
-		printf("That file was not found!\n");
+		printf("\tERROR: That file was not found!\n");
 		return 404;
 	}
 	
@@ -32,7 +38,7 @@ int main(int argc, char *argv[])
 	char fileName[fileNameLength+1];
 	strncpy(fileName, argv[1], fileNameLength);
 	fileName[fileNameLength+1] = '\0';
-	printf("Here is the file name: %s\n",fileName);
+	//printf("Here is the file name: %s\n",fileName);
 	
 	//get size of text in file
 	//size_t pos = ftell(fp);
@@ -42,11 +48,10 @@ int main(int argc, char *argv[])
 	//fseek(fp, pos, SEEK_SET);
 	
 	fclose(fp);
-	int numParts = atoi(argv[2]);
 	
 	//is user asking for more parts than there are characters?
 	if(numParts > fsize){
-		printf("ERROR: Too many parts requested\n");
+		printf("\tERROR: Too many parts requested\n");
 		return -1;
 	}
 	
@@ -54,10 +59,10 @@ int main(int argc, char *argv[])
 	int sizePart = fsize/numParts;
 	int offset = fsize % numParts;
 	
-	/* We can use this to delete the previous output files if the user calls this program on the same file multiple times!
-	char deleteCommand[2];
-	sprintf(deleteCommand, "find -type f -name '%sOUTPUT*.txt' -delete", fileName);
-	system(deleteCommand);*/
+	/* We can use this to delete the previous output files if the user calls this program on the same file multiple times!*/
+	char* deleteCommand = malloc(43 + ( sizeof(char) * fileNameLength ) );
+	sprintf(deleteCommand, "find -type f -name '%s_txt_LOLS*.txt' -delete", fileName);
+	system(deleteCommand);
 	
 	//here we should store the indeces to start and how much to do for each process
 	//fork() "parts" number of parts
@@ -70,7 +75,7 @@ int main(int argc, char *argv[])
 		pids[i] = fork();
 		
 		if(pids[i] == 0){
-			printf("PROCESS %d RUNNING\n", i);
+			//printf("PROCESS %d RUNNING\n", i);
 			
 			char sp[32];
 			sprintf(sp, "%d", sizePart);
@@ -102,10 +107,10 @@ int main(int argc, char *argv[])
 	//now we need to wait for each child process to finish working
 	for(i=0; i<numParts; i++){
 		int status;
-		while ((pids[i] = wait(&status)) > 0)
+		while ( (pids[i] = wait(&status) ) > 0)
 		{
-			printf("Exit status of %d was %d (%s)\n", (int)pids[i], status,
-				   (status > 0) ? "reject" : "accept");
+			/*printf("Exit status of %d was %d (%s)\n", (int)pids[i], status,
+				   (status > 0) ? "reject" : "accept");*/
 		}
 	}
 	return EXIT_SUCCESS;
