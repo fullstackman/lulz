@@ -26,7 +26,7 @@ procs:
 
 # Create the process-oriented program executable
 thread:
-	$(CC) $(CFLAGS) -o thread compressT_LOLS.c
+	$(CC) $(CFLAGS) -o thread compressT_LOLS.c -lpthread
 
 # To start over from scratch, type 'make clean'.  This
 # removes the executable file, as well as old .o object

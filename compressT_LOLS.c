@@ -8,14 +8,25 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-struct compParameters{
+//pthread_mutex_t myLock = PTHREAD_MUTEX_INITIALIZER;
+
+typedef struct CompParameters{
 	char *fn;
-	char *out;
+	int on;
 	int sp;
 	int off;
-};
+} CompParameters;
 
-int compress(char *fileName, char *output, int sizePart, int totalOffset){
+void *compress(void *args){
+	//pthread_mutex_lock(&myLock);
+	CompParameters* argz = (CompParameters*) args;
+	char* fileName = argz->fn;
+	int sizePart = argz->sp;
+	int totalOffset = argz->off;
+	int orderNum = argz -> on;
+	//pthread_mutex_unlock(&myLock);
+	
+	printf("\tThread %d has begun!\n\tLook at sizePart: %d  and offset: %d\n",orderNum,sizePart,totalOffset);
 	
 	FILE *fp;
 	fp = fopen(fileName, "r");
@@ -25,6 +36,7 @@ int compress(char *fileName, char *output, int sizePart, int totalOffset){
 	//fgets wasn't inclusive of the final character so we add one
 	fgets(input, sizePart+1, fp);
 	
+	char output[sizePart];
 	output[0] = '\0';
 	if(sizePart > 2){
 		char arrtmp[2];
@@ -71,8 +83,21 @@ int compress(char *fileName, char *output, int sizePart, int totalOffset){
 	}
 	else
 		strcpy(output, input);
-	printf("\tWorker Output: %s\n", output);
 	
+	//create output file of compressed string
+	FILE* sampleOutput;
+	char outputFile[510];
+	fileName[sizeof(fileName)- 4] = '_';
+	if(orderNum == -1)
+		snprintf(outputFile, 510, "%s_LOLS", fileName);
+	else
+		snprintf(outputFile, 510, "%s_LOLS%d", fileName, orderNum);
+	sampleOutput = fopen(outputFile, "w+");
+	
+	fputs(output,sampleOutput);
+	fclose(fp);
+	
+	pthread_exit((void*) sampleOutput);
 	return 0;
 }
 
@@ -128,54 +153,38 @@ int main(int argc, char *argv[])
 	
 	/* We can use this to delete the previous output files if the user calls this program on the same file multiple times!*/
 	char* deleteCommand = malloc(43 + ( sizeof(char) * fileNameLength ) );
-	sprintf(deleteCommand, "find -type f -name '%s_txt_LOLS*.txt' -delete", fileName);
+	sprintf(deleteCommand, "find -type f -name '%s_txt_LOLS*' -delete", fileName);
 	system(deleteCommand);
-	
-	char *output = malloc(fsize * sizeof(char));
 	
 	//here we should store the indeces to start and how much to do for each thread
 	pthread_t pthreads[numParts];
+	//CompParameters* parray[] = malloc(sizeof(CompParameters) * numParts);
+	CompParameters* parray[numParts];
+	int z;
+	for(z=0;z<numParts;++z){
+	parray[z] = (CompParameters*) malloc(sizeof(CompParameters) );
+	}
 	int i;
-	for(i=0; i<numParts; i++)
-	{
-		//first part size is largest
-		//includes any leftover characters
-		/*struct compParameters para;
-		para.fn = argv[1];
-		para.out = output + ((i * sizePart) + offset);
-		para.sp = sizePart;
-		para.off = ((i * sizePart) + offset);
-			
-		pthreads[i] = pthread_create(pthreads[i], NULL, compress, compParameters);
-		if(pthreads[i] == 0){
-			//error
-		}*/
+	for(i=0; i<numParts; i++){
+		printf("Starting loop #%d\n",i);
+		//put compress() args in a struct
+		parray[i]->fn = argv[1];
+		parray[i]->sp = sizePart;
+		parray[i]->on = i;
 		
-		
+		//MAYBE PRINTF BEFORE STARTING THREAD
 		
 		if(i == 0){		//if its the first part, increment by offset
-			
-			//put compress() args in a struct
-			struct compParameters para;
-			para.fn = argv[1];
-			para.out = output;
-			para.sp = sizePart + offset;
-			para.off = 0;
-				
-			pthreads[i] = pthread_create(pthreads + i, NULL, compress, &para);
-			if(pthreads[i] == 0){
-				//error
-			}
+			parray[i]->sp += offset;
+			parray[i]->off = 0;
+			if(numParts == 1)
+				parray[i]->on = -1;
 		}
+		else
+			parray[i]->off = ((i * sizePart) + offset);
 		
-		//put compress() args in a struct
-		struct compParameters para;
-		para.fn = argv[1];
-		para.out = output + ((i * sizePart) + offset);
-		para.sp = sizePart;
-		para.off = ((i * sizePart) + offset);
-			
-		pthreads[i] = pthread_create(pthreads[i], NULL, compress, &para);
+		pthread_create( &(pthreads[i]), NULL, &compress, &(parray[i]) );
+		//printf("Flushing buffer #%d\n", i);
 		if(pthreads[i] == 0){
 			//error
 		}
@@ -186,16 +195,6 @@ int main(int argc, char *argv[])
 	for (j = 0; j < numParts; j++) {
 		pthread_join(pthreads[j], NULL);
 	}
-	
-	//create output file of compressed string
-	FILE* sampleOutput;
-	char outputFile[510];
-	fileName[sizeof(fileName)- 4] = '_';
-	snprintf(outputFile, 510, "%s_LOLS.txt", fileName);
-	sampleOutput = fopen(outputFile, "w+");
-	
-	fputs(output,sampleOutput);
-	fclose(fp);
 	
 	return EXIT_SUCCESS;
 }
